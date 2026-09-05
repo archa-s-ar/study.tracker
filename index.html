@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UPSC Study Tracker</title>
+<style>
+:root{--ink:#18364a;--muted:#667784;--line:#e4ebf0;--bg:#f6f8fa;--card:#fff;--accent:#2d6685;--soft:#e9f2f6;--green:#dff0e3;--yellow:#fff2cc;--red:#f8dede;--shadow:0 4px 18px rgba(24,54,74,.06)}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);background:var(--bg)}
+button,input,select,textarea{font:inherit} button{cursor:pointer}
+.app{max-width:1500px;margin:auto;padding:22px}
+header{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:18px}
+h1{margin:0;font-size:26px}.sub{color:var(--muted);margin-top:4px;font-size:14px}
+.nav{display:flex;gap:8px;flex-wrap:wrap}.nav button{border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 14px;border-radius:10px}.nav button.active{background:var(--ink);color:#fff}
+.view{display:none}.view.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}.label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.value{font-size:25px;font-weight:750;margin-top:7px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px}
+.panel-head{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.panel-head h2{margin:0;font-size:17px}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:1100px}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle;font-size:13px}th{background:var(--ink);color:#fff;font-weight:650;position:sticky;top:0;z-index:1}
+input[type=text],input[type=date],input[type=number],select,textarea{border:1px solid var(--line);border-radius:8px;padding:7px 8px;background:#fff;color:var(--ink);width:100%;min-width:90px}textarea{resize:vertical}
+.check{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}.date-row.today{background:#edf6fa}.muted{color:var(--muted)}
+.badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:700}.done{background:var(--green)}.partial{background:var(--yellow)}.none{background:var(--red)}
+.strength-weak{background:var(--red)}.strength-average{background:var(--yellow)}.strength-strong{background:var(--green)}
+.progress{height:7px;background:#edf1f3;border-radius:999px;overflow:hidden}.progress>span{display:block;height:100%;background:var(--accent);border-radius:999px}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar button,.primary{border:0;background:var(--ink);color:#fff;border-radius:9px;padding:8px 12px}.secondary{border:1px solid var(--line)!important;background:#fff!important;color:var(--ink)!important}
+.empty{padding:35px;text-align:center;color:var(--muted)}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:16px}.week{border:1px solid var(--line);border-radius:10px;padding:12px;background:#fbfcfd}.week strong{display:block}.small{font-size:12px;color:var(--muted)}
+.notice{padding:12px 14px;background:var(--soft);border-radius:10px;color:var(--ink);font-size:13px}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}header{align-items:flex-start;flex-direction:column}.app{padding:14px}}
+@media(max-width:520px){.cards{grid-template-columns:1fr 1fr}.value{font-size:20px}h1{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div><h1>UPSC Study Tracker</h1><div class="sub">Study consistently. Revise intelligently. No guilt for missed days.</div></div>
+  <nav class="nav">
+    <button class="active" data-view="daily">Daily</button>
+    <button data-view="revisions">Today's Revision</button>
+    <button data-view="topics">Topic Tracker</button>
+    <button data-view="weekly">Weekly</button>
+  </nav>
+</header>
+
+<section id="daily" class="view active">
+  <div class="cards" id="dailyCards"></div>
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Daily Study Tracker — 90 days</h2>
+      <div class="toolbar"><button class="secondary" onclick="goToday()">Today</button><button onclick="addDay()">+ Add day</button></div>
+    </div>
+    <div class="table-wrap"><table><thead><tr>
+      <th>Date</th><th>Day</th><th>Newspaper</th><th>Daily news analysis</th><th>NCERT</th><th>Main subject</th><th>Revision</th><th>MCQs</th><th>Answer writing</th><th>Class / Lecture</th><th>Class notes</th><th>Optional</th><th>Daily target</th><th>Study hrs</th><th>Remarks</th><th>Done</th><th>%</th><th>Status</th>
+    </tr></thead><tbody id="dailyBody"></tbody></table></div>
+  </div>
+</section>
+
+<section id="revisions" class="view">
+  <div class="cards" id="revisionCards"></div>
+  <div class="panel">
+    <div class="panel-head"><h2>Today's Revision</h2><div class="small" id="revDate"></div></div>
+    <div class="notice" style="margin:14px">Revision pattern: <b>+1 day → +3 days → +7 days → +30 days</b>. Weak topics appear first.</div>
+    <div class="table-wrap"><table><thead><tr><th>Topic</th><th>Subject</th><th>Source</th><th>Stage</th><th>Strength</th><th>Completed ✓</th><th>Notes</th></tr></thead><tbody id="revisionBody"></tbody></table></div>
+  </div>
+</section>
+
+<section id="topics" class="view">
+  <div class="panel">
+    <div class="panel-head"><h2>Topic Tracker</h2><div class="toolbar"><button onclick="addTopic()">+ Add topic</button><button class="secondary" onclick="exportData()">Export backup</button><label class="secondary" style="padding:8px 12px">Import backup <input id="importFile" type="file" accept=".json" hidden></label></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Topic</th><th>Subject</th><th>Source</th><th>Date studied</th><th>R1 +1</th><th>R2 +3</th><th>R3 +7</th><th>R4 +30</th><th>Strength</th><th>Last revised</th><th>Status</th><th>Notes</th><th></th></tr></thead><tbody id="topicBody"></tbody></table></div>
+  </div>
+</section>
+
+<section id="weekly" class="view">
+  <div class="panel"><div class="panel-head"><h2>Weekly Consistency</h2><span class="small">Completed days are counted — not perfect days.</span></div><div id="weeklyBody"></div></div>
+</section>
+</div>
+
+<script>
+const ACTS=["newspaper","newsAnalysis","ncert","main","revision","mcq","answer","class","notes","optional","target"];
+const ACT_LABELS=["Newspaper","Daily news analysis","NCERT","Main subject","Revision","MCQs","Answer writing","Class / Lecture","Class notes","Optional","Daily target"];
+const SUBJECTS=["Polity","History","Economy","Geography","Environment","Science & Technology","International Relations","Society","Ethics","Current Affairs","Optional","Other"];
+const SOURCES=["NCERT","Class notes","Standard book","Newspaper","Current affairs notes","Test analysis","Other"];
+const KEY="upsc_tracker_v1";
+let data=JSON.parse(localStorage.getItem(KEY)||'{"days":[],"topics":[]}');
+const iso=d=>{let x=new Date(d);x.setHours(12,0,0,0);return x.toISOString().slice(0,10)};
+const todayISO=iso(new Date());
+const addDays=(s,n)=>{let d=new Date(s+"T12:00:00");d.setDate(d.getDate()+n);return iso(d)};
+const fmt=s=>new Date(s+"T12:00:00").toLocaleDateString(undefined,{day:"2-digit",month:"short",year:"numeric"});
+const save=()=>localStorage.setItem(KEY,JSON.stringify(data));
+function ensureDays(){
+ data.days.forEach(d=>{if(typeof d.newsAnalysis!=="boolean")d.newsAnalysis=false});
+ let last=data.days.length?data.days[data.days.length-1].date:null;
+ let start=last?addDays(last,1):todayISO;
+ if(!last || data.days.length<90){let d=start;while(data.days.length<90){data.days.push({date:d,...Object.fromEntries(ACTS.map(a=>[a,false])),hours:"",remarks:""});d=addDays(d,1)}save()}
+}
+function dayObj(date){return data.days.find(x=>x.date===date)}
+function pct(day){return day?Math.round(ACTS.filter(a=>day[a]).length/11*100):0}
+function status(p){return p===100?["Completed","done"]:p===0?["Not Completed","none"]:["Partially Completed","partial"]}
+function renderCards(){
+ let t=dayObj(todayISO), p=pct(t), week=data.days.filter(x=>{let d=new Date(todayISO),w=d.getDay()||7,s=new Date(d);s.setDate(d.getDate()-w+1);let e=new Date(s);e.setDate(s.getDate()+6);return new Date(x.date)>=s&&new Date(x.date)<=e});
+ let wp=week.length?Math.round(week.reduce((a,x)=>a+pct(x),0)/week.length):0;
+ let completedToday=ACTS.filter(a=>t&&t[a]).length;
+ let total=data.days.reduce((a,x)=>a+ACTS.filter(k=>x[k]).length,0);
+ let streak=0;for(let i=0;i<data.days.length;i++){let d=dayObj(addDays(todayISO,-i));if(d&&pct(d)>0)streak++;else break}
+ document.getElementById("dailyCards").innerHTML=[
+  ["Today's completion",p+"%"],["This week's completion",wp+"%"],["Current streak",streak+" day"+(streak===1?"":"s")],["Total activities completed",total]
+ ].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div><div class="progress"><span style="width:${parseInt(x[1])||0}%"></span></div></div>`).join("");
+}
+function renderDaily(){
+ document.getElementById("dailyBody").innerHTML=data.days.map(d=>{
+  let p=pct(d),[st,cl]=status(p), today=d.date===todayISO;
+  return `<tr class="date-row ${today?"today":""}">
+   <td><b>${fmt(d.date)}</b></td><td>${new Date(d.date+"T12:00:00").toLocaleDateString(undefined,{weekday:"short"})}</td>
+   ${ACTS.map(a=>`<td style="text-align:center"><input class="check" type="checkbox" ${d[a]?"checked":""} onchange="toggleDay('${d.date}','${a}',this.checked)"></td>`).join("")}
+   <td><input type="number" min="0" max="24" step=".25" value="${d.hours}" onchange="setDay('${d.date}','hours',this.value)"></td>
+   <td><input type="text" value="${esc(d.remarks)}" onchange="setDay('${d.date}','remarks',this.value)"></td>
+   <td>${ACTS.filter(a=>d[a]).length}/11</td><td>${p}%</td><td><span class="badge ${cl}">${st}</span></td>
+  </tr>`
+ }).join("");
+}
+function toggleDay(date,key,val){let d=dayObj(date);d[key]=val;save();renderAll()}
+function setDay(date,key,val){let d=dayObj(date);d[key]=val;save();renderAll()}
+function goToday(){document.querySelector(".today")?.scrollIntoView({behavior:"smooth",block:"center"})}
+function addDay(){let last=data.days[data.days.length-1];data.days.push({date:addDays(last.date,1),...Object.fromEntries(ACTS.map(a=>[a,false])),hours:"",remarks:""});save();renderAll()}
+function revisionRows(){
+ return data.topics.flatMap((t,i)=>{
+  if(!t.date)return[];
+  const stages=[["R1 • +1 Day",addDays(t.date,1)],["R2 • +3 Days",addDays(t.date,3)],["R3 • +7 Days",addDays(t.date,7)],["R4 • +30 Days",addDays(t.date,30)]];
+  return stages.filter(s=>s[1]===todayISO && t.status!=="Revised").map(s=>({...t,idx:i,stage:s[0]}));
+ }).sort((a,b)=>({"Weak":0,"Average":1,"Strong":2}[a.strength]??3)-({"Weak":0,"Average":1,"Strong":2}[b.strength]??3));
+}
+function renderRevisions(){
+ let rows=revisionRows(), completed=rows.filter(x=>x.doneToday).length, weak=rows.filter(x=>x.strength==="Weak").length;
+ document.getElementById("revDate").textContent=fmt(todayISO);
+ document.getElementById("revisionCards").innerHTML=[
+  ["Topics studied today",data.topics.filter(t=>t.date===todayISO).length],
+  ["Revisions due today",rows.length],["Completed today",completed],["Remaining today",Math.max(0,rows.length-completed)]
+ ].map(x=>`<div class="card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join("");
+ document.getElementById("revisionBody").innerHTML=rows.length?rows.map(r=>`<tr>
+ <td><b>${esc(r.topic)}</b></td><td>${esc(r.subject)}</td><td>${esc(r.source)}</td><td>${r.stage}</td>
+ <td><span class="badge ${r.strength==="Weak"?"strength-weak":r.strength==="Average"?"strength-average":"strength-strong"}">${r.strength}</span></td>
+ <td><input class="check" type="checkbox" ${r.doneToday?"checked":""} onchange="completeRevision(${r.idx},this.checked)"></td>
+ <td>${esc(r.notes||"")}</td></tr>`).join(""):`<tr><td colspan="7" class="empty">🎉 No revisions due today. You can focus on today's new learning.</td></tr>`;
+}
+function completeRevision(idx,val){let t=data.topics[idx];t.doneToday=val;t.lastRevised=val?todayISO:t.lastRevised||"";if(val)t.status="Revised";save();renderAll()}
+function renderTopics(){
+ document.getElementById("topicBody").innerHTML=data.topics.map((t,i)=>`<tr>
+ <td><input type="text" value="${esc(t.topic)}" onchange="editTopic(${i},'topic',this.value)"></td>
+ <td><select onchange="editTopic(${i},'subject',this.value)">${opts(SUBJECTS,t.subject)}</select></td>
+ <td><select onchange="editTopic(${i},'source',this.value)">${opts(SOURCES,t.source)}</select></td>
+ <td><input type="date" value="${t.date||""}" onchange="editTopic(${i},'date',this.value)"></td>
+ <td>${t.date?fmt(addDays(t.date,1)):"—"}</td><td>${t.date?fmt(addDays(t.date,3)):"—"}</td><td>${t.date?fmt(addDays(t.date,7)):"—"}</td><td>${t.date?fmt(addDays(t.date,30)):"—"}</td>
+ <td><select onchange="editTopic(${i},'strength',this.value)">${opts(["Weak","Average","Strong"],t.strength)}</select></td>
+ <td><input type="date" value="${t.lastRevised||""}" onchange="editTopic(${i},'lastRevised',this.value)"></td>
+ <td><select onchange="editTopic(${i},'status',this.value)">${opts(["Pending","Revised"],t.status)}</select></td>
+ <td><input type="text" value="${esc(t.notes||"")}" onchange="editTopic(${i},'notes',this.value)"></td>
+ <td><button class="secondary" onclick="deleteTopic(${i})">Delete</button></td></tr>`).join("");
+}
+function opts(arr,v){return `<option value="">Select…</option>`+arr.map(x=>`<option ${x===v?"selected":""}>${x}</option>`).join("")}
+function addTopic(){data.topics.unshift({topic:"",subject:"",source:"",date:todayISO,strength:"Average",lastRevised:"",status:"Pending",notes:"",doneToday:false});save();renderAll()}
+function editTopic(i,k,v){data.topics[i][k]=v;if(k==="date")data.topics[i].status="Pending";save();renderAll()}
+function deleteTopic(i){if(confirm("Delete this topic?")){data.topics.splice(i,1);save();renderAll()}}
+function renderWeekly(){
+ let start=new Date(todayISO+"T12:00:00");start.setDate(start.getDate()-((start.getDay()||7)-1));
+ let html='<div class="week-grid">';
+ for(let i=0;i<7;i++){let d=new Date(start);d.setDate(start.getDate()+i);let s=iso(d),x=dayObj(s),p=pct(x),[st,cl]=status(p);html+=`<div class="week"><strong>${d.toLocaleDateString(undefined,{weekday:"short"})}</strong><div class="small">${fmt(s)}</div><div style="margin:10px 0"><span class="badge ${cl}">${p}%</span></div><div class="small">${x?ACTS.filter(a=>x[a]).length:0}/10 activities</div></div>`}html+='</div>';
+ document.getElementById("weeklyBody").innerHTML=html;
+}
+function renderAll(){renderCards();renderDaily();renderRevisions();renderTopics();renderWeekly()}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.view).classList.add("active")});
+document.getElementById("importFile").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{data=JSON.parse(r.result);save();renderAll()}catch{alert("Invalid backup file.")}};r.readAsText(f)};
+function exportData(){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="upsc-tracker-backup.json";a.click()}
+ensureDays();save();renderAll();
+</script>
+</body>
+</html>
